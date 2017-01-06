@@ -30,8 +30,11 @@ Game::Game( MainWindow& wnd )
     x(0),
     y(0),
     center_x(400),
-    center_y(300)
+    center_y(300),
+    speed(3)
 {
+    bullet_x = center_x;
+    bullet_y = center_y;
 }
 
 void Game::Go()
@@ -44,6 +47,36 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
+}
+
+void Game::DrawBullet(int mx, int my)
+{
+    const static int delta = 1;
+    float cx = mx - center_x; // cx = the x edge length of triangle
+    float cy = my - center_y; // cy = the y edge length of triangle
+    float distance = sqrt(cx * cx + cy * cy);
+
+    // Normalize
+    float nx = cx / distance;
+    float ny = cy / distance;
+
+    float start_x = center_x;
+    float start_y = center_y;
+
+    // Draw bullet if inside screen
+    // Destroy if outside
+    bullet_x += nx * speed;
+    bullet_y += ny * speed;
+    if (bullet_x < 800 && bullet_x > 0 &&
+        bullet_y < 600 && bullet_y > 0)
+    {
+        gfx.PutPixel(bullet_x, bullet_y, 255, 0, 255);
+    }
+    else
+    {
+        bullet_x = center_x;
+        bullet_y = center_y;
+    }
 }
 
 void Game::DrawVector(int mx, int my)
@@ -63,8 +96,8 @@ void Game::DrawVector(int mx, int my)
     for (int i = 0; i < 30; ++i)
     {
         gfx.PutPixel(start_x, start_y, 255, 0, 255);
-	start_x += nx * delta;
-	start_y += ny * delta;
+        start_x += nx * delta;
+        start_y += ny * delta;
     }
 }
 
@@ -106,6 +139,7 @@ void Game::ComposeFrame()
             my = wnd.mouse.GetPosY();
             DrawBox(mx - 7, my - 7);
             DrawVector(mx, my);
+            DrawBullet(mx, my);
         }
     }
 }

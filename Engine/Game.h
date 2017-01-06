@@ -39,6 +39,7 @@ private:
     void DrawBox(int x, int y);
     void DrawVector(int mx, int my);
     void DrawCross();
+    void DrawBullet(int mx, int my);
     /********************************/
 private:
     MainWindow& wnd;
@@ -46,6 +47,8 @@ private:
     /********************************/
     /*  User Variables              */
     int x, y, mx, my;
+    float bullet_x, bullet_y;
+    float speed;
     const int center_x, center_y;
     /********************************/
 };

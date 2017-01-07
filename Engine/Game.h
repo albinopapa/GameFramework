@@ -23,6 +23,9 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "Graphics.h"
+#include <string>
+#include <iostream>
+#include <fstream>
 
 class Game
 {
@@ -36,10 +39,11 @@ private:
     void UpdateModel();
     /********************************/
     /*  User Functions              */
-    void DrawBox(int x, int y);
+    void DrawBox(int x, int y, int w, int h, std::string color);
     void DrawVector(int mx, int my);
     void DrawCross();
     void DrawBullet(int mx, int my);
+    void DrawRandomTarget();
     /********************************/
 private:
     MainWindow& wnd;
@@ -47,8 +51,14 @@ private:
     /********************************/
     /*  User Variables              */
     int x, y, mx, my;
+    int target_y, target_x;
+    const int target_w, target_h;
     float bullet_x, bullet_y;
     float speed;
     const int center_x, center_y;
+    bool is_game_over;
+    int score;
+    bool do_rand;
+    std::ofstream score_file;
     /********************************/
 };

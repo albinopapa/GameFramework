@@ -20,6 +20,21 @@
  ******************************************************************************************/
 #include "MainWindow.h"
 #include "Game.h"
+#include <ctime>
+
+/*
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+int main () {
+  ofstream myfile;
+  myfile.open ("example.txt");
+  myfile << "Writing this to a file.\n";
+  myfile.close();
+  return 0;
+}
+*/
 
 Game::Game( MainWindow& wnd )
     :
@@ -31,10 +46,20 @@ Game::Game( MainWindow& wnd )
     y(0),
     center_x(400),
     center_y(300),
-    speed(3)
+    speed(3),
+    target_x(0),
+    target_y(0),
+    target_w(30),
+    target_h(30),
+    is_game_over(false),
+    score(0),
+    do_rand(true)
 {
-    bullet_x = center_x;
-    bullet_y = center_y;
+    srand((unsigned int)time(NULL));
+    DrawRandomTarget();
+    bullet_x = (float)center_x;
+    bullet_y = (float)center_y;
+    std::ofstream score_file;
 }
 
 void Game::Go()
@@ -45,6 +70,17 @@ void Game::Go()
     gfx.EndFrame();
 }
 
+void Game::DrawRandomTarget()
+{
+    if (do_rand)
+    {
+        target_x = rand() % 800 - target_w;
+        target_y = rand() % 600 - target_h;
+	do_rand = false;
+    }
+    DrawBox(target_x, target_y, target_w, target_h, "White");
+}
+
 void Game::UpdateModel()
 {
 }
@@ -52,50 +88,52 @@ void Game::UpdateModel()
 void Game::DrawBullet(int mx, int my)
 {
     const static int delta = 1;
-    float cx = mx - center_x; // cx = the x edge length of triangle
-    float cy = my - center_y; // cy = the y edge length of triangle
+    float cx = mx - (float)center_x; // cx = the x edge length of triangle
+    float cy = my - (float)center_y; // cy = the y edge length of triangle
     float distance = sqrt(cx * cx + cy * cy);
 
     // Normalize
     float nx = cx / distance;
     float ny = cy / distance;
 
-    float start_x = center_x;
-    float start_y = center_y;
+    float start_x = (float)center_x;
+    float start_y = (float)center_y;
 
     // Draw bullet if inside screen
     // Destroy if outside
     bullet_x += nx * speed;
     bullet_y += ny * speed;
-    if (bullet_x < 800 && bullet_x > 0 &&
-        bullet_y < 600 && bullet_y > 0)
+    if (bullet_x + 3 < 800 && bullet_x > 0 &&
+        bullet_y + 3 < 600 && bullet_y > 0)
     {
-        gfx.PutPixel(bullet_x, bullet_y, 255, 0, 255);
+        DrawBox((int)bullet_x, (int)bullet_y, 3, 3, "Pink");
     }
     else
     {
-        bullet_x = center_x;
-        bullet_y = center_y;
+        score_file.open ("score.txt", std::ofstream::app);
+        score_file << score << "\n===GAME OVER===\n";
+        score_file.close();
+        is_game_over = true;
     }
 }
 
 void Game::DrawVector(int mx, int my)
 {
     const static int delta = 1;
-    float cx = mx - center_x; // cx = the x edge length of triangle
-    float cy = my - center_y; // cy = the y edge length of triangle
+    float cx = mx - (float)center_x; // cx = the x edge length of triangle
+    float cy = my - (float)center_y; // cy = the y edge length of triangle
     float distance = sqrt(cx * cx + cy * cy);
 
     // Normalize
     float nx = cx / distance;
     float ny = cy / distance;
 
-    float start_x = center_x;
-    float start_y = center_y;
+    float start_x = (float)center_x;
+    float start_y = (float)center_y;
 
     for (int i = 0; i < 30; ++i)
     {
-        gfx.PutPixel(start_x, start_y, 255, 0, 255);
+        gfx.PutPixel((int)start_x, (int)start_y, 255, 0, 255);
         start_x += nx * delta;
         start_y += ny * delta;
     }
@@ -114,15 +152,33 @@ void Game::DrawCross()
     }
 }
 
-void Game::DrawBox(int x, int y)
+void Game::DrawBox(int x, int y, int w, int h, std::string color)
 {
+    if (x + w > 800 ||
+        y + h > 600 ||
+        x < 0 ||
+        y < 0)
+    {
+        return;// Clamp
+    }
+
+    int r, g, b;
+    if (color == "Pink")
+    {
+        r = 255, g = 0, b = 255;
+    }
+    else if (color == "White")
+    {
+        r = 255, g = 255, b = 255;
+    }
+	    
     int temp_x = x;
     int temp_y = y;
-    for(int i = 0; i < 15; ++i, ++y)
+    for(int i = 0; i < h; ++i, ++y)
     {
-        for (int j = 0; j < 15; ++j, ++x)
+        for (int j = 0; j < w; ++j, ++x)
         {
-            gfx.PutPixel(x, y, 255, 255, 255);
+            gfx.PutPixel(x, y, r, g, b);
         }
         x = temp_x;
     }
@@ -131,15 +187,30 @@ void Game::DrawBox(int x, int y)
 void Game::ComposeFrame()
 {
     DrawCross();
+    if (is_game_over)
+    {
+        return;
+    }
     if (wnd.mouse.IsInWindow())
     {
         if (wnd.mouse.LeftIsPressed())
         {
             mx = wnd.mouse.GetPosX();
             my = wnd.mouse.GetPosY();
-            DrawBox(mx - 7, my - 7);
+            DrawBox(mx - 7, my - 7, 15, 15, "White");
             DrawVector(mx, my);
             DrawBullet(mx, my);
+	    // Check to see if target is hit
+            if (bullet_x > target_x &&
+                bullet_x < target_x + target_w &&
+                bullet_y > target_y &&
+                bullet_y < target_y + target_h)
+            {
+                ++score;
+                do_rand = true;
+            }
+
+            DrawRandomTarget();
         }
     }
 }

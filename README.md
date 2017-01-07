@@ -12,3 +12,8 @@ Controls
 ----------
 
 Left mouse (hold): Shows the target and bullet
+
+Files
+----------
+
+Open the score.txt file in the Engine directory.

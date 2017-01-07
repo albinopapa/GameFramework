@@ -74,8 +74,8 @@ void Game::DrawRandomTarget()
 {
     if (do_rand)
     {
-        target_x = rand() % 800 - target_w;
-        target_y = rand() % 600 - target_h;
+        target_x = rand() % (800 - target_w);
+        target_y = rand() % (600 - target_h);
 	do_rand = false;
     }
     DrawBox(target_x, target_y, target_w, target_h, "White");

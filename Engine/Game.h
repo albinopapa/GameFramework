@@ -36,16 +36,11 @@ private:
     void UpdateModel();
     /********************************/
     /*  User Functions              */
-    void DrawBox(int x, int y);
-    void DrawVector(int mx, int my);
-    void DrawCross();
     /********************************/
 private:
     MainWindow& wnd;
     Graphics gfx;
     /********************************/
     /*  User Variables              */
-    int x, y, mx, my;
-    const int center_x, center_y;
     /********************************/
 };
